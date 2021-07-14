@@ -8,7 +8,7 @@ import pickle
 data_dir = "data/id_smiles.txt"
 data_dir2 = "data/data/"
 
-with open(data_dir, 'r') as f: lines = [l.strip() for l in f.readlines()]
+with open(data_dir, 'r') as f: lines = [l.strip() for l in f.readlines()][:1000]
 print(len(lines))
 
 def run(l):

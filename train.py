@@ -33,7 +33,7 @@ def run(model, dataset, train=True):
         whole.graph_to_device(device)
 
         with torch.autograd.set_detect_anomaly(True):
-            scaff_save, vae_loss, recon_loss = model(scaff, whole, train)
+            scaff_save, vae_loss, recon_loss = model(scaff, whole, train=train)
             total_loss = vae_loss + recon_loss
 
             if train:

@@ -82,7 +82,7 @@ class GGM(nn.Module): # Graph Generative Model
             scaff_save.add_node(node)
             scaff.add_node(self.init_node(scaff, node))
 
-            # Get neighboring edges
+            # Get edges
             edges = whole_save.get_edges(i)
             if self.args.shuffle: random.shuffle(edges)
 
@@ -156,12 +156,13 @@ class GGM(nn.Module): # Graph Generative Model
         self.embed_graph(scaff)
 
         # Sample latent vector from standard normal 
-        # TODO
-        latent_vector = torch.randn()
+        latent_vector = torch.randn((1, self.args.num_node_hidden), \
+                device=scaff.get_device())
 
         # Initial propagation
         self.update_graph(scaff)
 
+        # Iterate until max_num_nodes
         for i in range(scaff.get_num_nodes(), scaff.get_max_num_nodes()):
             
             # Get new node feature
@@ -174,6 +175,7 @@ class GGM(nn.Module): # Graph Generative Model
             scaff_save.add_node(new_node)
             scaff.add_node(self.init_node(scaff, new_node))
 
+            # Iterate until max_add_edges
             for _ in range(self.args.max_add_edges):
                 
                 # Get new edge feature

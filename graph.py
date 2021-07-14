@@ -168,7 +168,7 @@ class Graph2D(object):
         if idx2 > self.num_nodes - 1: return None
         return self.edge_feature_mat[(idx1, idx2)]
 
-    def set_node_with_idx(
+    def set_node_feature_with_idx(
             self,
             feature,
             idx

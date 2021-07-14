@@ -5,7 +5,7 @@ import sys
 
 exp = "ggm_2"
 
-for i in [0]:
+for i in [1]:
     
     lines = f"""#!/bin/bash
 #PBS -q batch
@@ -32,7 +32,7 @@ python -u train.py \
 --num_edge_features 4 \
 --num_node_hidden 128 \
 --num_edge_hidden 128 \
---lr 2e-6 \
+--lr 1e-5 \
 --lr_decay 0.99 \
 --num_epochs 301 \
 --save_every 1 \
