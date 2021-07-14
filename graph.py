@@ -244,80 +244,6 @@ class Graph2D(object):
         self.device = device
         return
 
-    def _visualize(
-            self,
-            msg="",
-            fn=None
-            ):
-        import numpy as np
-        import matplotlib
-        matplotlib.use("Agg")
-        import matplotlib.pyplot as plt
-        from mpl_toolkits.mplot3d import Axes3D                                     
-
-        fig = plt.figure()                                                          
-        ax = fig.gca(projection='3d')                                               
-
-        vh = np.array(self.get_node_feature())
-        vr = np.array(self.get_node_coord())
-        eh = np.array(self.get_ordered_edge()[0])
-        e_dict = self.get_edge_dict()
-        num_nodes = self.get_num_nodes()
-        num_edges = self.get_num_edges()
-
-        for a in range(num_nodes):
-            ax.scatter(*vr[a], \
-                    color=utils.ATOM_COLOR_DICT[utils.ATOM_TYPES[vh[a].argmax()]])
-
-        seen = []
-        for (i, j), b in e_dict.items():
-            if b in seen: continue
-            e_vector = vr[[i,j],:].T                                             
-            ax.plot(*e_vector, \
-                    color=utils.BOND_COLOR_DICT[utils.BOND_TYPES[eh[b].argmax()]])
-            seen.append(b)
-
-        x_min, x_max = min(vr[:num_nodes,0]), max(vr[:num_nodes,0])
-        y_min, y_max = min(vr[:num_nodes,1]), max(vr[:num_nodes,1])
-        z_min, z_max = min(vr[:num_nodes,2]), max(vr[:num_nodes,2])
-        delta = max([x_max-x_min, y_max-y_min, z_max-z_min])/2
-        center = [(x_max+x_min)/2, (y_max+y_min)/2, (z_max+z_min)/2]
-
-        ax.set_xlim(center[0]-delta, center[0]+delta)
-        ax.set_ylim(center[1]-delta, center[1]+delta)
-        ax.set_zlim(center[2]-delta, center[2]+delta)
-        # ax.view_init(45, 45)
-        ax.text(
-            -10, 10, 0, msg, \
-            horizontalalignment='left', \
-            verticalalignment='top', \
-            transform=ax.transAxes
-        )
-        
-        if fn is not None:
-            plt.savefig(fn)                                                             
-        plt.close()                                                                 
-        return fig
-
-    def animate(
-            self,
-            fn=None
-            ):
-        import numpy as np
-        import matplotlib
-        matplotlib.use("Agg")
-        import matplotlib.pyplot as plt
-        import imageio
-        from PIL import Image
-
-        # TODO
-        fig = self.visualize()
-        img = Image.frombytes('RGB', fig.canvas.get_width_height(), \
-                fig.canvas.tostring_rgb())
-
-        # imageio.mimsave(fn, imgs, fps=5)
-        return
-
 
 def is_same_graph(graph1, graph2, hard=False):
     if graph1.get_num_nodes() != graph2.get_num_nodes(): return False
@@ -437,6 +363,9 @@ def make_graphs_from_mol(mol, v_max, self_loop=False):
                 whole.add_edge_between(torch.FloatTensor(e_feature), i, j)
 
     return scaff, whole
+
+def make_mol_from_graph(graph):
+    return
 
 
 if __name__ == "__main__":

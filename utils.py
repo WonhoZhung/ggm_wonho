@@ -9,10 +9,6 @@ import numpy as np
 
 from rdkit import Chem
 
-__all__ = ['dic_to_device', 'set_cuda_visible_device', 'stat_cuda', \
-           'initialize_model', 'get_dataset_dataloader', 'write_result' \
-           'check_equivariance']
-
 
 STOP = None
 ATOM_TYPES = ['C', 'N', 'O', 'F', 'P', 'S', 'CL', 'BR', STOP]
@@ -135,79 +131,6 @@ def write_result(fn, true_dict, pred_dict):
     with open(fn, 'w') as w: w.writelines(lines)
     return
 
-# visualizing tensor
-def print_tensor(tensor):
-    print(tensor.shape)
-    m, n = tensor.shape
-    for i in range(m):
-        for j in range(n):
-            print(f"{tensor[i][j]:.1f}", end=', ')
-        print('\n')
-    return
-
-def draw_tensor(tensor, filename='tmp', scale=1):
-    import matplotlib
-    matplotlib.use('Agg')
-    import matplotlib.pyplot as plt
-
-    tensor = tensor.cpu().numpy()
-
-    fig, ax = plt.subplots()
-    im = ax.imshow(tensor, cmap="Greys", vmin=0, vmax=scale)
-    cbar = ax.figure.colorbar(im, ax=ax)
-    fig.tight_layout()
-    plt.savefig(filename)
-    plt.close()
-    return
-
-def draw_graph_3D(graph, msg="", fn=None):                                                     
-    import matplotlib
-    matplotlib.use("Agg")
-    import matplotlib.pyplot as plt
-    from mpl_toolkits.mplot3d import Axes3D                                     
-
-
-    fig = plt.figure()                                                          
-    ax = fig.gca(projection='3d')                                               
-
-    vh = np.array(graph.get_node_feature())
-    vr = np.array(graph.get_node_coord())
-    eh = np.array(graph.get_ordered_edge()[0])
-    e_dict = graph.get_edge_dict()
-    num_atoms = graph.get_num_nodes()
-    num_edges = graph.get_num_edges()
-
-    for a in range(num_atoms):
-        ax.scatter(*vr[a], color=ATOM_COLOR_DICT[ATOM_TYPES[vh[a].argmax()]])
-
-    seen = []
-    for (i, j), b in e_dict.items():
-        if b in seen: continue
-        e_vector = vr[[i,j],:].T                                             
-        ax.plot(*e_vector, color=BOND_COLOR_DICT[BOND_TYPES[eh[b].argmax()]])
-        seen.append(b)
-
-    x_min, x_max = min(vr[:num_atoms,0]), max(vr[:num_atoms,0])
-    y_min, y_max = min(vr[:num_atoms,1]), max(vr[:num_atoms,1])
-    z_min, z_max = min(vr[:num_atoms,2]), max(vr[:num_atoms,2])
-    delta = max([x_max-x_min, y_max-y_min, z_max-z_min])/2
-    center = [(x_max+x_min)/2, (y_max+y_min)/2, (z_max+z_min)/2]
-
-    ax.set_xlim(center[0]-delta, center[0]+delta)
-    ax.set_ylim(center[1]-delta, center[1]+delta)
-    ax.set_zlim(center[2]-delta, center[2]+delta)
-    # ax.view_init(45, 45)
-    ax.text(
-        -10, 10, 0, msg, \
-        horizontalalignment='left', \
-        verticalalignment='top', \
-        transform=ax.transAxes
-    )
-    
-    plt.savefig(fn)                                                             
-    plt.close()                                                                 
-    return
-
 def prob_to_one_hot(vector):
     N = len(vector)
     new_vector = vector.new_zeros(vector.shape)
@@ -221,8 +144,3 @@ def int_to_one_hot(x, length, device=None):
 if __name__ == '__main__':
     
     pass
-    
-    # sdf_fn = "/home/wonho/work/data/PDBbind_v2019/general-set/1bcu/1bcu_ligand.sdf"
-    # v_max = 30
-    # graph = make_graph_from_sdf(sdf_fn, v_max)
-    # draw_graph_3D(graph, msg="1bcu_ligand", fn="1bcu.png")
