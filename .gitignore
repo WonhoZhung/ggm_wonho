@@ -1,0 +1,7 @@
+__pycache__
+data
+save
+results
+log
+jobscript_submit.x
+tmp*
