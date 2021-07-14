@@ -25,8 +25,6 @@ class Graph2D(object):
         else:
             self.adjacency_mat = torch.zeros(max_num_nodes, max_num_nodes)
 
-        self.edge_idx_dict = {} # key: (node_idx1, node_idx2), value: edge_idx
-
         self.num_nodes = 0
         self.num_edges = 0
 
@@ -142,8 +140,6 @@ class Graph2D(object):
         self.adjacency_mat[idx2, idx1] = 1
         self.edge_feature_mat[idx1, idx2] = feature
         self.edge_feature_mat[idx2, idx1] = feature
-        self.edge_idx_dict[(idx1, idx2)] = self.num_edges
-        self.edge_idx_dict[(idx2, idx1)] = self.num_edges
         self.num_edges += 1
         return feature
 
@@ -221,18 +217,6 @@ class Graph2D(object):
         valid_e[:self.num_nodes, :self.num_nodes, :] = 1
         return valid_e
 
-    def get_ordered_edge(
-            self
-            ):
-        shape = (self.max_num_edges, self.num_edge_features)
-        ordered_edge = self.edge_feature_mat.new_zeros(shape)
-        valid_edge = self.edge_feature_mat.new_zeros((self.max_num_edges, 1))
-        for i, (idx1, idx2) in enumerate(self.edge_idx_dict.keys()):
-            if not i%2 == 1: continue
-            ordered_edge[i//2] = self.edge_feature_mat[idx1, idx2]
-            valid_edge[i//2] = 1
-        return ordered_edge, valid_edge
-
     def graph_to_device(
             self,
             device
@@ -299,8 +283,7 @@ def make_graph_from_mol(mol, v_max, self_loop=False):
     
     try: 
         Chem.SanitizeMol(mol)
-        conf = mol.GetConformer(0)
-        xyz = conf.GetPositions()
+        Chem.Kekulize(mol, clearAromaticFlags=True)
     except: return
 
     for i, atom in enumerate(mol.GetAtoms()):
@@ -326,6 +309,8 @@ def make_graphs_from_mol(mol, v_max, self_loop=False):
 
     try: 
         scf = Chem.MolFromSmiles(MurckoScaffoldSmiles(mol=mol))
+        Chem.Kekulize(mol, clearAromaticFlags=True)
+        Chem.Kekulize(scf, clearAromaticFlags=True)
         new_idx = list(mol.GetSubstructMatches(scf)[0])
     except: return None, None
     
@@ -335,37 +320,56 @@ def make_graphs_from_mol(mol, v_max, self_loop=False):
 
     for i, atom in enumerate(scf.GetAtoms()):
         v_feature = get_atom_feature(atom)
-        scaff.add_node(torch.FloatTensor(v_feature))
+        scaff.add_node(v_feature)
     
     for i in range(scf.GetNumAtoms()):
         for j in range(scf.GetNumAtoms()):
             bond = scf.GetBondBetweenAtoms(i, j)
             if bond is not None and not scaff.is_edge_between(i, j):
                 e_feature = get_bond_feature(bond)
-                scaff.add_edge_between(torch.FloatTensor(e_feature), i, j)
+                scaff.add_edge_between(e_feature, i, j)
 
     for i, atom in enumerate(mol.GetAtoms()):
         v_feature = get_atom_feature(mol.GetAtomWithIdx(new_idx[i]))
-        whole.add_node(torch.FloatTensor(v_feature))
+        whole.add_node(v_feature)
     
     for i in range(scf.GetNumAtoms()):
         for j in range(scf.GetNumAtoms()):
             bond = mol.GetBondBetweenAtoms(new_idx[i], new_idx[j])
             if bond is not None and not whole.is_edge_between(i, j):
                 e_feature = get_bond_feature(bond)
-                whole.add_edge_between(torch.FloatTensor(e_feature), i, j)
+                whole.add_edge_between(e_feature, i, j)
 
     for i in range(mol.GetNumAtoms()):
         for j in range(mol.GetNumAtoms()):
             bond = mol.GetBondBetweenAtoms(new_idx[i], new_idx[j])
             if bond is not None and not whole.is_edge_between(i, j):
                 e_feature = get_bond_feature(bond)
-                whole.add_edge_between(torch.FloatTensor(e_feature), i, j)
+                whole.add_edge_between(e_feature, i, j)
 
     return scaff, whole
 
 def make_mol_from_graph(graph):
-    return
+    from rdkit import Chem
+    from rdkit.Chem import RWMol
+    new_mol = RWMol()
+
+    for i in range(graph.num_nodes):
+        node = graph.node_feature_mat[i]
+        atom = Chem.Atom(utils.ATOMIC_NUM[node.argmax(-1)])
+        new_mol.AddAtom(atom)
+
+    for i in range(graph.num_nodes):
+        for j in range(i, graph.num_nodes):
+            if graph.is_edge_between(i, j):
+                edge = graph.edge_feature_mat[i,j]
+                bondType = utils.BOND_TYPES[edge.argmax(-1)]
+                new_mol.AddBond(i, j, bondType)
+    
+    try: Chem.SanitizeMol(new_mol)
+    except: return None
+
+    return new_mol
 
 
 if __name__ == "__main__":

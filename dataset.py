@@ -47,13 +47,13 @@ def one_of_k_encoding(x, allowable_set):
     return list(map(lambda s: x == s, allowable_set))
 
 def get_atom_feature(atom):
-    return np.array(
+    return torch.FloatTensor(
             one_of_k_encoding(atom.GetSymbol().upper(), ATOM_TYPES)
             ) # --> total 9
 
 def get_bond_feature(bond):
-    return np.array(
-            one_of_k_encoding_unk(bond.GetBondType(), BOND_TYPES)
+    return torch.FloatTensor(
+            one_of_k_encoding(bond.GetBondType(), BOND_TYPES)
             ) # --> total 4
 
 def mol_to_sample(mol, args):

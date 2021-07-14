@@ -3,7 +3,7 @@ import time
 import sys
 
 
-exp = "ggm_1"
+exp = "ggm_2"
 
 for i in [0]:
     

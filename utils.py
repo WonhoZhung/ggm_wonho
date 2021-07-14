@@ -12,8 +12,9 @@ from rdkit import Chem
 
 STOP = None
 ATOM_TYPES = ['C', 'N', 'O', 'F', 'P', 'S', 'CL', 'BR', STOP]
-BOND_TYPES = [Chem.rdchem.BondType.SINGLE, Chem.rdchem.BondType.DOUBLE, \
-              Chem.rdchem.BondType.TRIPLE, STOP]
+ATOMIC_NUM = [6, 7, 8, 9, 15, 16, 17, 35]
+BOND_TYPES = [Chem.BondType.SINGLE, Chem.BondType.DOUBLE, \
+              Chem.BondType.TRIPLE, STOP]
 
 NUM_ATOM_TYPES = len(ATOM_TYPES)
 NUM_BOND_TYPES = len(BOND_TYPES)
