@@ -67,12 +67,19 @@ def train(model, args, optimizer, data, train, device=None, scaler=None):
 
 
 def main_worker(gpu, ngpus_per_node, args):
+
     ############ Distributed Data Parallel #############
-    rank = args.nr * args.ngpu + gpu
     # https://pytorch.org/docs/stable/distributed.html#environment-variable-initialization
+    rank = gpu
+    print("Rank:", rank)
     os.environ["MASTER_ADDR"] = "127.0.0.1"
     os.environ["MASTER_PORT"] = "2021"
-    dist.init_process_group("nccl", rank=rank, world_size=args.world_size)
+    dist.init_process_group(
+            "nccl", 
+            rank=rank, 
+            world_size=args.world_size
+    )
+    print("######## Finished Setting DDP ########")
     ####################################################
 
     # Path
@@ -102,8 +109,8 @@ def main_worker(gpu, ngpus_per_node, args):
     ####################################################
     train_dataloader = DataLoader(
             train_dataset,
-            args.batch_size,
-            num_workers=0,
+            batch_size=args.batch_size,
+            num_workers=args.num_workers,
             pin_memory=True,
             collate_fn=my_collate_fn,
             shuffle=False,
@@ -130,7 +137,7 @@ def main_worker(gpu, ngpus_per_node, args):
 
     ############ Distributed Data Parallel #############
     # Wrap the model
-    model = DDP(model, device_ids=[gpu])
+    model = DDP(model, device_ids=[gpu], find_unused_parameters=True)
     cudnn.benchmark = True
     ####################################################
 
@@ -158,7 +165,7 @@ def main_worker(gpu, ngpus_per_node, args):
 
     for epoch in range(start_epoch, args.num_epochs):
         if epoch == 0 and rank == 0:
-            print(f"EPOCH\t|\tVAE\t|\tRECN.\t|\tTOTAL")
+            print(f"EPOCH\t|\tVAE\t|\tRECN.\t|\tTOTAL\t|\tTIME")
 
         train_data = iter(train_dataloader)
         #test_data = iter(test_dataloader)
@@ -180,7 +187,8 @@ def main_worker(gpu, ngpus_per_node, args):
         
         if rank == 0:
             print(f"{epoch}\t|\t{train_vae_losses:.3f}\t|\t" + \
-                  f"{train_recon_losses:.3f}\t|\t{train_total_losses:.3f}")
+                  f"{train_recon_losses:.3f}\t|\t{train_total_losses:.3f}\t|\t" + \
+                  f"{et - st:.2f}")
 
         name = os.path.join(save_dir, f"save_{epoch}.pt")
         save_every = 1 if not args.save_every else args.save_every
@@ -194,20 +202,23 @@ def main_worker(gpu, ngpus_per_node, args):
 def main():
     args = arguments.train_args_parser()
     d = vars(args)
+    print("####################################################")
     for a in d: print(a, "=", d[a])
+    print("####################################################")
 
     # Seed
     torch.manual_seed(0)
     np.random.seed(0)
     cudnn.deterministic = True
 
-    args.distributed = args.ngpu > 1
-    ngpus_per_node = args.ngpu
     if args.distributed:
-        args.world_size = ngpus_per_node
-        mp.spawn(main_worker, nprocs=ngpus_per_node, args=(ngpus_per_node, args,))
+        mp.spawn(
+                main_worker, 
+                nprocs=args.world_size, 
+                args=(args.world_size, args,)
+        )
     else:
-        main_worker(args.ngpu, ngpus_per_node, args)
+        main_worker(0, args.world_size, args)
 
 
 if __name__ == "__main__":

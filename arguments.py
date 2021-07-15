@@ -6,16 +6,14 @@ def train_args_parser():
     parser = argparse.ArgumentParser()                                              
 
     # DEFAULT SETTINGS
-    parser.add_argument("--ngpu", help="number of gpu", type=int, default=1)        
-    parser.add_argument("--num_workers", help="number of workers", type=int, \
-            default=4)
-    parser.add_argument("--batch_size", help="batch_size", type=int, default=1)   
-    parser.add_argument("--nr", help="number of ", type=int, default=1)        
-    parser.add_argument("--world_size", help="world size", type=int)        
+    parser.add_argument("--world_size", help="world size", type=int, default=4)        
     parser.add_argument("--distributed", help="distributed", action="store_true", \
             default=True)
     parser.add_argument("--autocast", help="autocast", action="store_true", \
             default=True)
+    parser.add_argument("--num_workers", help="number of workers", type=int, \
+            default=0)
+    parser.add_argument("--batch_size", help="batch_size", type=int, default=1)   
 
     # DIRECTORY SETTINGS
     parser.add_argument("--save_dir", help="save directory", type=str)

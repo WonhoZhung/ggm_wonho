@@ -22,7 +22,6 @@ NPROCS=`wc -l < $PBS_NODEFILE`
 
 export OMP_NUM_THREADS=1
 python -u train.py \
---num_workers 4 \
 --save_dir save/{exp}.{i} \
 --data_dir data/data/ \
 --key_dir data/keys/ \
