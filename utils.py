@@ -28,6 +28,9 @@ BOND_COLOR_DICT = {BOND_TYPES[i]:BOND_COLORS[i] for i in range(NUM_BOND_TYPES-1)
 
 
 # settings for using GPU
+def get_abs_path(path):
+    return os.path.expanduser(path)
+
 def dic_to_device(dic, device):
     for dic_key, dic_value in dic.items():
         if isinstance(dic_value, torch.Tensor):

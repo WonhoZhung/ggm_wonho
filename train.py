@@ -12,8 +12,10 @@ args = train_args_parser()
 print(args)
 
 import torch
+import torch.multiprocessing as mp
+from torch.multiprocessing import Pool
 
-cmd = utils.set_cuda_visible_device(ngpus=1)
+cmd = utils.set_cuda_visible_device(ngpus=0)
 os.environ['CUDA_VISIBLE_DEVICES'] = cmd[:-1]
 
 from model import GGM
