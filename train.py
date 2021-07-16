@@ -36,6 +36,8 @@ def run(model, dataset, train=True):
 
         with torch.autograd.set_detect_anomaly(True):
             scaff_save, vae_loss, recon_loss = model(scaff, whole, train=train)
+            vae_loss = args.vae_coeff * vae_loss
+            recon_loss = args.recon_coeff * recon_loss
             total_loss = vae_loss + recon_loss
 
             if train:

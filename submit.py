@@ -31,6 +31,8 @@ python -u train.py \
 --num_edge_features 4 \
 --num_node_hidden 128 \
 --num_edge_hidden 128 \
+--vae_coeff 1.0 \
+--recon_coeff 0.1 \
 --lr 1e-5 \
 --lr_decay 0.99 \
 --num_epochs 301 \

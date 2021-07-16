@@ -27,16 +27,25 @@ def train_args_parser():
             default=utils.NUM_ATOM_TYPES)
     parser.add_argument("--num_edge_features", help="edge features", type=int, \
             default=utils.NUM_BOND_TYPES)
-    parser.add_argument("--num_node_hidden", help="node hidden features", type=int)
-    parser.add_argument("--num_edge_hidden", help="edge hidden features", type=int)
+    parser.add_argument("--num_node_hidden", help="node hidden features", \
+            type=int)
+    parser.add_argument("--num_edge_hidden", help="edge hidden features", \
+            type=int)
     
     # TRAINING SETTINGS
     parser.add_argument("--num_epochs", help="num epochs", type=int)            
+    parser.add_argument("--vae_coeff", help="vae_loss coeff", type=float, \
+            default=1.0)
+    parser.add_argument("--recon_coeff", help="recon_loss coeff", type=float, \
+            default=1.0)
     parser.add_argument("--lr", help="lr", type=float, default=1e-5)
     parser.add_argument("--lr_decay", help="lr_decay", type=float, default=1.0)
-    parser.add_argument("--weight_decay", help="weight_decay", type=float, default=0.0)
-    parser.add_argument("--restart_file", help="restart_file", type=str, default=None)
-    parser.add_argument("--save_every", help="save every n epochs", type=int, default=1)
+    parser.add_argument("--weight_decay", help="weight_decay", type=float, \
+            default=0.0)
+    parser.add_argument("--restart_file", help="restart_file", type=str, \
+            default=None)
+    parser.add_argument("--save_every", help="save every n epochs", type=int, \
+            default=1)
     parser.add_argument("--shuffle", help="shuffle", action="store_true")
     
     # RESULT SETTINGS

@@ -126,6 +126,17 @@ class Graph2D(object):
         self.num_nodes += 1
         return feature
 
+    def add_node_at(
+            self,
+            feature,
+            idx
+            ):
+        assert self.num_nodes < self.max_num_nodes + 1
+
+        self.node_feature_mat[idx] = feature
+        self.num_nodes += 1
+        return feature
+
     def add_edge_between(
             self,
             feature,
@@ -142,6 +153,13 @@ class Graph2D(object):
         self.edge_feature_mat[idx2, idx1] = feature
         self.num_edges += 1
         return feature
+
+    def is_node_at(
+            self,
+            idx
+            ):
+        assert idx < self.max_num_nodes
+        return bool(sum(self.node_feature_mat[idx]) != 0)
 
     def is_edge_between(
             self,
@@ -309,10 +327,10 @@ def make_graphs_from_mol(mol, v_max, self_loop=False):
 
     try: 
         scf = Chem.MolFromSmiles(MurckoScaffoldSmiles(mol=mol))
+        new_idx = list(mol.GetSubstructMatches(scf)[0])
         Chem.Kekulize(mol, clearAromaticFlags=True)
         Chem.Kekulize(scf, clearAromaticFlags=True)
-        new_idx = list(mol.GetSubstructMatches(scf)[0])
-    except: return None, None
+    except Exception as e: print(e); return None, None
     
     for i in range(mol.GetNumAtoms()):
         if i in new_idx: continue

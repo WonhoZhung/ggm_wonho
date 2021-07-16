@@ -79,8 +79,11 @@ class GGM(nn.Module): # Graph Generative Model
             )
 
             # Add new node to scaffold (teacher forcing)
-            scaff_save.add_node(node)
-            scaff.add_node(self.init_node(scaff, node))
+            scaff_save.add_node_at(node, i)
+            scaff.add_node_at(self.init_node(scaff, node), i)
+
+            # Verbose mode
+            # print(f"Node added at {i}-th index")
 
             # Get edges
             edges = whole_save.get_edges(i)
@@ -88,7 +91,9 @@ class GGM(nn.Module): # Graph Generative Model
 
             # Iterate number of edges to be added
             for j, edge in edges:
-                if j > i: continue
+                
+                # Continue if j-th node is yet added
+                if not scaff_save.is_node_at(j): continue
                 
                 # Get new edge feature
                 new_edge = self.add_edge(scaff, latent_vector)
@@ -114,6 +119,9 @@ class GGM(nn.Module): # Graph Generative Model
                 scaff_save.add_edge_between(edge, j, i)
                 scaff.add_edge_between(self.init_edge(scaff, edge), j, i)
 
+                # Verbose mode
+                # print(f"Edge added between {i}-th and {j}-th node")
+
             # End of adding edge
             end_edge = int_to_one_hot(self.args.num_edge_features - 1, \
                     self.args.num_edge_features, scaff.get_device())
@@ -138,9 +146,9 @@ class GGM(nn.Module): # Graph Generative Model
 
         # Calculating losses
         vae_loss = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-        recon_loss = sum(add_node_loss) + \
-                     sum(add_edge_loss) + \
-                     sum(select_node_loss)
+        recon_loss = torch.stack(add_node_loss).mean() + \
+                     torch.stack(add_edge_loss).mean() + \
+                     torch.stack(select_node_loss).mean()
 
         return scaff_save, vae_loss, recon_loss
 
