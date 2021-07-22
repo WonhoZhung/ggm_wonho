@@ -71,7 +71,7 @@ def main_worker(gpu, ngpus_per_node, args):
     ############ Distributed Data Parallel #############
     # https://pytorch.org/docs/stable/distributed.html#environment-variable-initialization
     rank = gpu
-    print("Rank:", rank)
+    print("Rank:", rank, flush=True)
     os.environ["MASTER_ADDR"] = "127.0.0.1"
     os.environ["MASTER_PORT"] = "2021"
     dist.init_process_group(
@@ -79,7 +79,7 @@ def main_worker(gpu, ngpus_per_node, args):
             rank=rank, 
             world_size=args.world_size
     )
-    print("######## Finished Setting DDP ########")
+    print("######## Finished Setting DDP ########", flush=True)
     ####################################################
 
     # Path
@@ -125,10 +125,11 @@ def main_worker(gpu, ngpus_per_node, args):
     #        shuffle=False,
     #        sampler=test_sampler
     #)
+    N_TRAIN_DATA = len(train_dataset)
     if not args.restart_file and rank == 0:
-        print("Train dataset length: ", len(train_dataset))
+        print("Train dataset length: ", N_TRAIN_DATA, flush=True)
         #print("Test dataset length: ", len(test_dataset))
-        print("######## Finished Loading Datasets ########")
+        print("######## Finished Loading Datasets ########", flush=True)
 
     # Model initialize
     model = GGM(args)
@@ -142,9 +143,10 @@ def main_worker(gpu, ngpus_per_node, args):
     ####################################################
 
     if not args.restart_file and rank == 0:
-        print("Number of Parameters: ",
-              sum(p.numel() for p in model.parameters() if p.requires_grad))
-        print("####### Finished Loading Model #######")
+        print("Number of Parameters: ", \
+              sum(p.numel() for p in model.parameters() if p.requires_grad), \
+              flush=True)
+        print("####### Finished Loading Model #######", flush=True)
 
     # Optimizer
     optimizer = torch.optim.Adam(
@@ -165,7 +167,7 @@ def main_worker(gpu, ngpus_per_node, args):
 
     for epoch in range(start_epoch, args.num_epochs):
         if epoch == 0 and rank == 0:
-            print(f"EPOCH\t|\tVAE\t|\tRECN.\t|\tTOTAL\t|\tTIME")
+            print(f"EPOCH\t|\tVAE\t|\tRECN.\t|\tTOTAL\t|\tTIME(s)/DATA", flush=True)
 
         train_data = iter(train_dataloader)
         #test_data = iter(test_dataloader)
@@ -188,7 +190,7 @@ def main_worker(gpu, ngpus_per_node, args):
         if rank == 0:
             print(f"{epoch}\t|\t{train_vae_losses:.3f}\t|\t" + \
                   f"{train_recon_losses:.3f}\t|\t{train_total_losses:.3f}\t|\t" + \
-                  f"{et - st:.2f}")
+                  f"{(et - st)/N_TRAIN_DATA:.2f}", flush=True)
 
         name = os.path.join(save_dir, f"save_{epoch}.pt")
         save_every = 1 if not args.save_every else args.save_every
@@ -215,7 +217,7 @@ def main():
         mp.spawn(
                 main_worker, 
                 nprocs=args.world_size, 
-                args=(args.world_size, args,)
+                args=(args.world_size, args,),
         )
     else:
         main_worker(0, args.world_size, args)

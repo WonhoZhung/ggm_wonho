@@ -305,11 +305,6 @@ class SelectNode(nn.Module):
         self.args = args
 
         self.update_graph = GraphUpdate(args)
-        self.graph_vector = GGNNBlock(
-                args.num_node_hidden,
-                args.num_edge_hidden,
-                args.num_layers,
-        )
         self.fc = nn.Sequential(
                 nn.Linear(args.num_node_hidden*2, args.num_node_hidden),
                 nn.ReLU(),

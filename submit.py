@@ -3,14 +3,14 @@ import time
 import sys
 
 
-exp = "ggm_2"
+exp = "ggm_3"
 
-for i in [1]:
+for i in [0]:
     
     lines = f"""#!/bin/bash
 #PBS -q batch
 #PBS -N WH_{exp}.{i}
-#PBS -l nodes=1:ppn=4:gpu
+#PBS -l nodes=1:ppn=16:gpu
 #PBS -l walltime=1000:00:00
 
 source activate wonho
@@ -20,8 +20,7 @@ echo `cat $PBS_NODEFILE`
 cat $PBS_NODEFILE
 NPROCS=`wc -l < $PBS_NODEFILE`
 
-export OMP_NUM_THREADS=1
-python -u train.py \
+python -u train_ddp.py \
 --save_dir save/{exp}.{i} \
 --data_dir data/data/ \
 --key_dir data/keys/ \
