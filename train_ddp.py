@@ -167,7 +167,7 @@ def main_worker(gpu, ngpus_per_node, args):
 
     for epoch in range(start_epoch, args.num_epochs):
         if epoch == 0 and rank == 0:
-            print(f"EPOCH\t|\tVAE\t|\tRECN.\t|\tTOTAL\t|\tTIME(s)/DATA", flush=True)
+            print(f"EPOCH\t|\tVAE\t|\tRECN.\t|\tTOTAL\t|\tTIME/DATA", flush=True)
 
         train_data = iter(train_dataloader)
         #test_data = iter(test_dataloader)
